@@ -11,8 +11,6 @@ const port = 3000;
 
 // JSONリクエストボディをパースするためのミドルウェア
 app.use(express.json());
-// 静的ファイル (index.html) を提供するためのミドルウェア
-app.use(express.static(__dirname));
 
 // Gemini APIの初期化
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);

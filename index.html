@@ -789,10 +789,10 @@
                         <li><strong>漸進性過負荷：</strong>徐々に重量や回数を増やしていきます</li>
                         <li><strong>十分な休息：</strong>筋肉は休息中に成長します（48-72時間）</li>
                         <li><strong>栄養補給：</strong>タンパク質を体重×1.5-2g摂取しましょう</li>
-                        <li><strong>水分補給：</strong>トレーニング中は小まめに水分を取りましょう</li>
+                        <li><strong>水分補給：：</strong>トレーニング中は小まめに水分を取りましょう</li>
                         <li><strong>ウォームアップ：</strong>軽い有酸素運動と動的ストレッチから始めます</li>
                         <li><strong>クールダウン：</strong>静的ストレッチで筋肉をほぐしましょう</li>
-                        <li><strong>継続性：</strong>週2-3回、3ヶ月続けることで効果を実感できます</li>
+                        <li><strong>継続性：：</strong>週2-3回、3ヶ月続けることで効果を実感できます</li>
                     </ul>
                 </div>
                 <div class="tips" style="background: linear-gradient(135deg, #26d0ce, #1a2a6c); margin-top: 20px;">
@@ -831,40 +831,11 @@
         async function callApi(message) {
             const historyForApi = conversationHistory.map(item => ({
                 role: item.isUser ? "user" : "model",
-                parts: [{ text: item.content.split(/```json/)[0].trim() }] // JSONを除いたテキスト部分のみを履歴とする
+                parts: [{ text: item.content }] 
             }));
+            
+            const systemPrompt = `あなたは経験豊富なパーソナルトレーナーです。ユーザーの要望に基づき、最適な1週間のワークアウトプログラムを作成してください。\n\n応答は、以下の2つのパートで構成してください。\n1. ユーザーへの自然な導入メッセージ。\n2. 以下のJSONスキーマに厳密に従ったトレーニングプログラム。JSONデータは必ず \`\`\`json と \`\`\` で囲んでください。\n\n【JSONスキーマの例】\n\`\`\`json\n{\n  "programName": "AI生成 初心者向け筋力向上プログラム",\n  "introduction": "あなたの目標に合わせて、週3回のトレーニングメニューを作成しました。各種目の間に2〜3分の休憩を取り、正しいフォームを意識してください。",\n  "days": [\n    {\n      "dayName": "月曜日 - 上半身集中",\n      "isRestDay": false,\n      "exercises": [\n        { "name": "ベンチプレス", "sets": 3, "reps": "8-10" },\n        { "name": "ショルダープレス", "sets": 3, "reps": "10-12" }\n      ]\n    },\n    {\n      "dayName": "火曜日 - 休息日",\n      "isRestDay": true,\n      "exercises": []\n    }\n  ]\n}\n\`\`\`\n\nユーザーへのメッセージは簡潔かつ親しみやすく、JSONデータはスキーマを厳守してください。`;
 
-            // ★修正点: JSON形式での応答を要求するプロンプトに変更
-            const systemPrompt = `あなたは経験豊富なパーソナルトレーナーです。ユーザーの要望に基づき、最適な1週間のワークアウトプログラムを作成してください。
-
-応答は、以下の2つのパートで構成してください。
-1. ユーザーへの自然な導入メッセージ。
-2. 以下のJSONスキーマに厳密に従ったトレーニングプログラム。JSONデータは必ず ```json と ``` で囲んでください。
-
-【JSONスキーマの例】
-```json
-{
-  "programName": "AI生成 初心者向け筋力向上プログラム",
-  "introduction": "あなたの目標に合わせて、週3回のトレーニングメニューを作成しました。各種目の間に2〜3分の休憩を取り、正しいフォームを意識してください。",
-  "days": [
-    {
-      "dayName": "月曜日 - 上半身集中",
-      "isRestDay": false,
-      "exercises": [
-        { "name": "ベンチプレス", "sets": 3, "reps": "8-10" },
-        { "name": "ショルダープレス", "sets": 3, "reps": "10-12" }
-      ]
-    },
-    {
-      "dayName": "火曜日 - 休息日",
-      "isRestDay": true,
-      "exercises": []
-    }
-  ]
-}
-```
-
-ユーザーへのメッセージは簡潔かつ親しみやすく、JSONデータはスキーマを厳守してください。`;
 
             try {
                 const response = await fetch('/api/gemini', {
@@ -888,7 +859,6 @@
             }
         }
 
-        // ★修正点: 生のテキストを履歴に保存し、表示を整形するように修正
         function addMessage(content, isUser = false) {
             const messagesContainer = document.getElementById('chat-messages');
             const messageDiv = document.createElement('div');
@@ -896,17 +866,15 @@
             const messageContentDiv = document.createElement('div');
             messageContentDiv.className = 'message-content';
 
-            // 生のテキストを履歴に保存
             conversationHistory.push({ content: content, isUser: isUser });
 
-            // 表示用のコンテンツを準備
             let displayHTML = formatMessage(content);
             const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
 
             if (!isUser && jsonMatch) {
                 try {
                     const program = JSON.parse(jsonMatch[1]);
-                    const introText = program.introduction || content.split('```json')[0].trim();
+                    const introText = content.split('```json')[0].trim();
                     displayHTML = formatMessage(introText) + '<p style="margin-top:10px; padding:10px; background-color:#eef; border-radius:5px;"><em>トレーニングメニューが生成されました。下部のボタンから保存できます。</em></p>';
                 } catch (e) { /* パース失敗時はそのまま表示 */ }
                 
@@ -923,14 +891,28 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-
         function formatMessage(text) {
-            return text
+            // JSONブロックはフォーマットしないように保護
+            const jsonBlocks = [];
+            let tempText = text.replace(/```json\s*([\s\S]*?)\s*```/g, (match, p1) => {
+                jsonBlocks.push(match);
+                return `__JSON_BLOCK_${jsonBlocks.length - 1}__`;
+            });
+
+            // 基本的なフォーマット
+            tempText = tempText
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\n/g, '<br>');
+
+            // JSONブロックを元に戻す
+            tempText = tempText.replace(/__JSON_BLOCK_(\d+)__/g, (match, p1) => {
+                return jsonBlocks[p1];
+            });
+            
+            return tempText;
         }
 
         async function sendMessage() {
@@ -962,7 +944,6 @@
             sendMessage();
         }
         
-        // ★修正点: JSONを解析するロジックに全面変更
         function parseAndSaveProgram() {
             const latestAiMessage = conversationHistory.filter(m => !m.isUser).pop();
             if (!latestAiMessage) {

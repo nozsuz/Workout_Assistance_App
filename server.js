@@ -44,7 +44,8 @@ app.post('/api/gemini', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-    console.log('Please open your browser and navigate to this address.');
-});
+// app.listen(port, () => {
+//     console.log(`Server is running on http://localhost:${port}`);
+//     console.log('Please open your browser and navigate to this address.');
+// });
+module.exports = app;
